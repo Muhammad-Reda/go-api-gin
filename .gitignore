@@ -36,3 +36,4 @@ go.sum
 # Air-verse Go specific files
 .air/
 tmp/
+.air.toml
