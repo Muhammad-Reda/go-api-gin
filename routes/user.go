@@ -16,7 +16,7 @@ func SetupUserRoutes(router *gin.Engine) {
 		userRoutes.GET("/", methods.GetAllUsers)
 		userRoutes.GET("/:id", methods.GetUserById)
 		userRoutes.POST("/", methods.CreateUser)
-		userRoutes.PUT("/:id", methods.UpdateUserById)
+		userRoutes.PATCH("/:id", methods.UpdateUserById)
 		userRoutes.DELETE("/:id", methods.DeleteUserById)
 	}
 }

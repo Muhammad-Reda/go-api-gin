@@ -6,6 +6,7 @@ import (
 
 	"github.com/muhammad-reda/go-api-gin/dummy"
 	"github.com/muhammad-reda/go-api-gin/models"
+	validation "github.com/muhammad-reda/go-api-gin/validation/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,18 +38,47 @@ func GetUserById(c *gin.Context) {
 
 func UpdateUserById(c *gin.Context) {
 	id := c.Param("id")
-	var updatedUser models.User
+	var updatedUser models.UpdateUser
 
-	if errBodyJson := c.ShouldBindBodyWithJSON(&updatedUser); errBodyJson != nil {
+	if veer := validation.UserValidation(c, nil, &updatedUser); len(veer) > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Invalid body",
+			"error": veer,
 		})
+		return
 	}
 
 	for i, user := range users {
 		if user.ID == id {
 			updatedUser.ID = id
-			users[i] = updatedUser
+			if updatedUser.Username == "" {
+				updatedUser.Username = user.Username
+			}
+			if updatedUser.Email == "" {
+				updatedUser.Email = user.Email
+			}
+			if updatedUser.Password == "" {
+				updatedUser.Password = user.Password
+			}
+			if updatedUser.Age == 0 {
+				updatedUser.Age = user.Age
+			}
+			if updatedUser.Address == "" {
+				updatedUser.Address = user.Address
+			}
+			if updatedUser.Phone == "" {
+				updatedUser.Phone = user.Phone
+			}
+
+			users[i] = models.User{
+				ID:       id,
+				Username: updatedUser.Username,
+				Password: updatedUser.Password,
+				Email:    updatedUser.Email,
+				Age:      updatedUser.Age,
+				Address:  updatedUser.Address,
+				Phone:    updatedUser.Phone,
+			}
+
 			c.JSON(http.StatusOK, gin.H{
 				"message": "User updated",
 				"data":    updatedUser,
@@ -65,23 +95,23 @@ func UpdateUserById(c *gin.Context) {
 func CreateUser(c *gin.Context) {
 	var newUser models.User
 
-	if errBodyJson := c.ShouldBindBodyWithJSON(&newUser); errBodyJson != nil {
+	// Validation request body
+	if verr := validation.UserValidation(c, &newUser, nil); len(verr) > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Invalid body",
+			"errors":  verr,
 		})
 		return
 	}
 
 	// Generate new ID
 	newUser.ID = fmt.Sprintf("%d", len(users)+1)
-
 	users = append(users, newUser)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "User created",
 		"data":    newUser,
 	})
-
 }
 
 func DeleteUserById(c *gin.Context) {
