@@ -6,13 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/muhammad-reda/go-api-gin/methods/auth"
 	"github.com/muhammad-reda/go-api-gin/models"
-	validation "github.com/muhammad-reda/go-api-gin/validation/user"
+	validation "github.com/muhammad-reda/go-api-gin/validation/body"
 )
 
 func Login(c *gin.Context) {
 	var userLogin models.Loginuser
 
-	if veer := validation.UserValidation(c, &userLogin); len(veer) > 0 {
+	if veer := validation.BodyValidation(c, &userLogin); len(veer) > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": veer,
 		})

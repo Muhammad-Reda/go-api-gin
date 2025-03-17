@@ -14,10 +14,10 @@ type ValidationError struct {
 	Reason string `json:"reason"`
 }
 
-func UserValidation(c *gin.Context, user interface{}) []ValidationError {
+func BodyValidation(c *gin.Context, body interface{}) []ValidationError {
 	var veer []ValidationError
 
-	if err := c.ShouldBindJSON(user); err != nil {
+	if err := c.ShouldBindJSON(body); err != nil {
 		// Check if errors happen in unmarshalling json
 		unmarshallTypeError, okUnmarshall := err.(*json.UnmarshalTypeError)
 		if okUnmarshall {

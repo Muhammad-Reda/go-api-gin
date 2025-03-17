@@ -5,14 +5,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/muhammad-reda/go-api-gin/models"
-	validation "github.com/muhammad-reda/go-api-gin/validation/user"
+	validation "github.com/muhammad-reda/go-api-gin/validation/body"
 )
 
 func UpdateUserByID(c *gin.Context) {
 	id := c.Param("id")
 	var updatedUser models.UpdateUser
 
-	if veer := validation.UserValidation(c, &updatedUser); len(veer) > 0 {
+	if veer := validation.BodyValidation(c, &updatedUser); len(veer) > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": veer,
 		})
