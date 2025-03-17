@@ -12,7 +12,7 @@ func UpdateUserByID(c *gin.Context) {
 	id := c.Param("id")
 	var updatedUser models.UpdateUser
 
-	if veer := validation.UserValidation(c, nil, &updatedUser); len(veer) > 0 {
+	if veer := validation.UserValidation(c, &updatedUser); len(veer) > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": veer,
 		})

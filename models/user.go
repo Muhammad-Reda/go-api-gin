@@ -20,3 +20,8 @@ type UpdateUser struct {
 	Address  string `json:"address"`
 	Phone    string `json:"phone"`
 }
+
+type Loginuser struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
