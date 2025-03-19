@@ -22,6 +22,7 @@ func UpdateTask(c *gin.Context) {
 	for i, task := range tasks {
 		if task.ID == id {
 			taskUpdate.ID = id
+			taskUpdate.UserID = task.UserID
 
 			if taskUpdate.Name == "" {
 				taskUpdate.Name = task.Name
