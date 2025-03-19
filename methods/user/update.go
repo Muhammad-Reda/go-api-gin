@@ -23,23 +23,14 @@ func UpdateUserByID(c *gin.Context) {
 		if user.ID == id {
 			updatedUser.ID = id
 
-			if updatedUser.Address == "" {
-				updatedUser.Address = user.Address
-			}
 			if updatedUser.Email == "" {
 				updatedUser.Email = user.Email
 			}
 			if updatedUser.Password == "" {
 				updatedUser.Password = user.Password
 			}
-			if updatedUser.Phone == "" {
-				updatedUser.Phone = user.Phone
-			}
 			if updatedUser.Username == "" {
 				updatedUser.Username = user.Username
-			}
-			if updatedUser.Age == 0 {
-				updatedUser.Age = user.Age
 			}
 
 			users[i] = models.User{
@@ -47,9 +38,6 @@ func UpdateUserByID(c *gin.Context) {
 				Username: updatedUser.Username,
 				Password: updatedUser.Password,
 				Email:    updatedUser.Email,
-				Age:      updatedUser.Age,
-				Address:  updatedUser.Address,
-				Phone:    updatedUser.Phone,
 			}
 
 			c.JSON(http.StatusOK, gin.H{
