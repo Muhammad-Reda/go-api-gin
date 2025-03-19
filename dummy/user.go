@@ -4,7 +4,7 @@ import (
 	"github.com/muhammad-reda/go-api-gin/models"
 )
 
-// User is a dummy user
+// Users is a dummy user
 var Users = []models.User{
 	{
 		ID:       "1",

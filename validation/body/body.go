@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/muhammad-reda/go-api-gin/models"
 )
 
 // Struct for errors of validation
@@ -15,17 +14,10 @@ type ValidationError struct {
 	Reason string `json:"reason"`
 }
 
-func UserValidation(c *gin.Context, user *models.User, UpdateUser *models.UpdateUser) []ValidationError {
+func BodyValidation(c *gin.Context, body interface{}) []ValidationError {
 	var veer []ValidationError
-	var userValidation interface{}
 
-	if user == nil {
-		userValidation = UpdateUser
-	} else {
-		userValidation = user
-	}
-
-	if err := c.ShouldBindJSON(userValidation); err != nil {
+	if err := c.ShouldBindJSON(body); err != nil {
 		// Check if errors happen in unmarshalling json
 		unmarshallTypeError, okUnmarshall := err.(*json.UnmarshalTypeError)
 		if okUnmarshall {
