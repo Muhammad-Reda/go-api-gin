@@ -37,3 +37,7 @@ go.sum
 .air/
 tmp/
 .air.toml
+
+
+# env 
+.env

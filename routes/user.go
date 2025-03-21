@@ -1,67 +1,27 @@
 package routes
 
 import (
-	"net/http"
-
-	"github.com/muhammad-reda/go-api-gin/db"
-	"github.com/muhammad-reda/go-api-gin/methods/user"
-	"github.com/muhammad-reda/go-api-gin/models"
+	"database/sql"
 
 	"github.com/gin-gonic/gin"
+	"github.com/muhammad-reda/go-api-gin/controller"
+	"github.com/muhammad-reda/go-api-gin/domain/repository"
+	"github.com/muhammad-reda/go-api-gin/domain/service"
 )
 
-/*
-	Setup all user routes
-*/
+var ctx *gin.Context
 
-func SetupUserRoutes(router *gin.Engine) {
-	userRoutes := router.Group("/users")
+func UserApi(r *gin.Engine, db *sql.DB) {
+	userRepository := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepository)
+	userController := controller.NewUserController(userService, ctx)
+
+	v1 := r.Group("/api/v1")
 	{
-		userRoutes.GET("/", user.GetAllUsers)
-		userRoutes.GET("/:id", user.GetUserByID)
-		userRoutes.POST("/", user.CreateUser)
-		userRoutes.POST("/login", user.Login)
-		userRoutes.PATCH("/:id", user.UpdateUserByID)
-		userRoutes.DELETE("/:id", user.DeleteUserByID)
-		userRoutes.GET("/db", func(c *gin.Context) {
-			db, err := db.Connection()
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"message": "Internal server error",
-					"error":   err.Error(),
-				})
-				return
-			}
-			defer db.Close()
-
-			var tasks []models.Task
-			query := "SELECT * FROM tasks"
-
-			rows, errDb := db.Query(query)
-			if errDb != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"message": "Internal server error",
-					"error":   err.Error(),
-				})
-			}
-
-			for rows.Next() {
-				var task models.Task
-				errScan := rows.Scan(&task.ID, &task.Name, &task.Description, &task.Status, &task.UserID, &task.CreatedAT, &task.UpdatedAt)
-				if errScan != nil {
-					c.JSON(http.StatusInternalServerError, gin.H{
-						"message": "Internal server error",
-						"code":    errScan.Error(),
-					})
-					return
-				}
-				tasks = append(tasks, task)
-			}
-
-			c.JSON(http.StatusOK, gin.H{
-				"message": "db connected",
-				"db":      tasks,
-			})
-		})
+		v1.GET("/users", userController.GetAll)
+		v1.GET("/users/:id", userController.GetByID)
+		v1.POST("/users", userController.Create)
+		v1.PATCH("/users/:id", userController.Update)
+		v1.DELETE("/users/:id", userController.Delete)
 	}
 }
