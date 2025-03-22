@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
+	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/muhammad-reda/go-api-gin/domain/entity"
 )
 
@@ -64,7 +66,7 @@ func (ur *UserRepositoryImplementation) FindById(ctx context.Context, id int64) 
 	errScan := db.QueryRowContext(ctx, query, id).Scan(&user.Id, &user.Email, &user.Username, &user.Password, &user.CreatedAt, &user.UpdatedAt, &user.DeletedAt)
 	if errScan != nil {
 		if errScan == sql.ErrNoRows {
-			return user, fmt.Errorf("user with id %d not found", id)
+			return user, sql.ErrNoRows
 		}
 		return user, errScan
 	}
@@ -76,6 +78,12 @@ func (ur *UserRepositoryImplementation) Save(ctx context.Context, user entity.Us
 	query := "INSERT INTO users (email, username, password) VALUES (?, ?, ?)"
 	_, errExec := ur.DB.ExecContext(ctx, query, user.Email, user.Username, user.Password)
 	if errExec != nil {
+
+		switch errExec.(*mysql.MySQLError).Number {
+		case 1062:
+			return nil, errors.New("email or username already exist")
+		}
+
 		return nil, errExec
 	}
 
@@ -87,6 +95,11 @@ func (ur *UserRepositoryImplementation) Update(ctx context.Context, user entity.
 
 	_, errExec := ur.DB.ExecContext(ctx, query, user.Email, user.Username, user.Password, id)
 	if errExec != nil {
+		switch errExec.(*mysql.MySQLError).Number {
+		case 1062:
+			return nil, errors.New("email or username already exist")
+		}
+
 		return nil, errExec
 	}
 
@@ -94,10 +107,13 @@ func (ur *UserRepositoryImplementation) Update(ctx context.Context, user entity.
 }
 
 func (ur *UserRepositoryImplementation) Delete(ctx context.Context, id int64) error {
-	query := "INSERT INTO users (deleted_at) VALUES (?) WHERE id = ? AND deleted_at IS NULL"
+	query := "UPDATE users SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL"
 
-	_, errExec := ur.DB.ExecContext(ctx, query, id)
+	_, errExec := ur.DB.ExecContext(ctx, query, time.Now(), id)
 	if errExec != nil {
+		if errExec == sql.ErrNoRows {
+			return sql.ErrNoRows
+		}
 		return errExec
 	}
 

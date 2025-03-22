@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/muhammad-reda/go-api-gin/domain/entity"
@@ -17,13 +16,21 @@ type TaskRepository interface {
 	Delete(tctx context.Context, id int64) error
 }
 
+// type ErrTaskRepo struct {
+// 	Reason string `json:"reason"`
+// }
+//
+// func (et *ErrTaskRepo) Error() string {
+// 	return fmt.Sprintf("Reason: %s", et.Reason)
+// }
+
 type TaskRepositoryImplementation struct {
 	DB *sql.DB
 }
 
 func NewTaskRepository(DB *sql.DB) *TaskRepositoryImplementation {
 	return &TaskRepositoryImplementation{
-		DB,
+		DB: DB,
 	}
 }
 
@@ -61,7 +68,7 @@ func (ts *TaskRepositoryImplementation) FindById(ctx context.Context, id int64) 
 	err := db.QueryRowContext(ctx, query, id).Scan(&task.Id, &task.Name, &task.Description, &task.Status, &task.UserId, &task.CreatedAt, &task.UpdatedAt, &task.DeletedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return task, fmt.Errorf("task with id %d not found", id)
+			return task, sql.ErrNoRows
 		}
 		return task, err
 	}
@@ -93,7 +100,7 @@ func (ts *TaskRepositoryImplementation) Update(ctx context.Context, task entity.
 }
 
 func (ts *TaskRepositoryImplementation) Delete(ctx context.Context, id int64) error {
-	query := "INSERT INTO tasks (deleted_at) VALUES (?) WHERE id = ? WHERE deleted_at IS NULL"
+	query := "UPDATE tasks SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL"
 
 	_, errQuery := ts.DB.ExecContext(ctx, query, time.Now(), id)
 	if errQuery != nil {

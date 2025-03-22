@@ -2,10 +2,10 @@ package service
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"github.com/muhammad-reda/go-api-gin/domain/entity"
 	"github.com/muhammad-reda/go-api-gin/domain/repository"
 	dto "github.com/muhammad-reda/go-api-gin/dto/user"
+	validation "github.com/muhammad-reda/go-api-gin/validation/body"
 )
 
 type UserService interface {
@@ -37,15 +37,8 @@ func (us *UserServiceImplementation) GetByID(ctx *gin.Context, id int64) (entity
 func (us *UserServiceImplementation) Create(ctx *gin.Context) (*entity.User, error) {
 	var input dto.UserCrate
 
-	errBindJson := ctx.ShouldBindJSON(&input)
-	if errBindJson != nil {
-		return nil, errBindJson
-	}
-
-	validator := validator.New()
-	errValidate := validator.Struct(input)
-	if errValidate != nil {
-		return nil, errValidate
+	if veer := validation.BodyValidation(ctx, &input); veer != nil {
+		return nil, veer
 	}
 
 	user := entity.User{
@@ -64,22 +57,32 @@ func (us *UserServiceImplementation) Create(ctx *gin.Context) (*entity.User, err
 
 func (us *UserServiceImplementation) Update(ctx *gin.Context, id int64) (*entity.User, error) {
 	var input dto.UserUpdate
-
-	errBindJson := ctx.ShouldBindJSON(&input)
-	if errBindJson != nil {
-		return nil, errBindJson
+	foundedUser, errorFound := us.userRepo.FindById(ctx, id)
+	if errorFound != nil {
+		return nil, errorFound
+	}
+	if input.Email == "" {
+		input.Email = foundedUser.Email
+	}
+	if input.Password == "" {
+		input.Password = foundedUser.Password
+	}
+	if input.Username == "" {
+		input.Username = foundedUser.Username
 	}
 
-	validator := validator.New()
-	errValidate := validator.Struct(input)
-	if errValidate != nil {
-		return nil, errValidate
+	if veer := validation.BodyValidation(ctx, &input); veer != nil {
+		return nil, veer
 	}
 
 	user := entity.User{
-		Email:    input.Email,
-		Username: input.Username,
-		Password: input.Password,
+		Id:        foundedUser.Id,
+		Email:     input.Email,
+		Username:  input.Username,
+		Password:  input.Password,
+		CreatedAt: foundedUser.CreatedAt,
+		UpdatedAt: foundedUser.UpdatedAt,
+		DeletedAt: foundedUser.DeletedAt,
 	}
 
 	result, errUpdate := us.userRepo.Update(ctx, user, id)
@@ -91,6 +94,10 @@ func (us *UserServiceImplementation) Update(ctx *gin.Context, id int64) (*entity
 }
 
 func (us *UserServiceImplementation) Delete(ctx *gin.Context, id int64) error {
+	_, errorFound := us.userRepo.FindById(ctx, id)
+	if errorFound != nil {
+		return errorFound
+	}
 	errDelete := us.userRepo.Delete(ctx, id)
 	return errDelete
 }

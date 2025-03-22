@@ -7,6 +7,7 @@ import (
 
 	"github.com/muhammad-reda/go-api-gin/config"
 	"github.com/muhammad-reda/go-api-gin/routes"
+	"github.com/muhammad-reda/go-api-gin/validation/cors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -24,17 +25,17 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	// router.Use(cors.CorsMiddleware())
+	router.Use(cors.CorsMiddleware())
 	// router.SetTrustedProxies([]string{"7.0.0.2"})
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Hello world!",
-			"db":      db,
 		})
 	})
 
 	routes.UserApi(router, db)
+	routes.TaskApi(router, db)
 
 	router.Run(":" + appPort)
 }
